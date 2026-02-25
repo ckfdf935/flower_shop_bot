@@ -4,11 +4,11 @@ from aiogram.filters import CommandStart
 from dotenv import load_dotenv
 from buttons import *
 import re
+
 load_dotenv()
 
 ADMIN_ID = getenv('ADMIN_ID')
 router = Router()
-
 
 
 @router.message(CommandStart())
@@ -22,7 +22,6 @@ async def command_start(message: types.Message):
 async def start_fsm(message: types.Message, state: FSMContext):
     await state.set_state(OrderSteps.choosing_category)
     await message.answer("Выберите категорию цветов:", reply_markup=color_menu())
-
 
 
 @router.message(OrderSteps.choosing_category, (F.text.contains("🌹Розы🌹")) | (F.text.lower() == "розы"))
@@ -42,7 +41,6 @@ async def eustoma_category(message: types.Message, flowers_db, state: FSMContext
     await show_flowers(message=message, flowers_db=flowers_db, vid="эустома", state=state)
 
 
-
 @router.message(OrderSteps.choosing_flower)
 async def process_flower_choice(message: types.Message, state: FSMContext):
     if message.text == "⬅️ Назад":
@@ -60,7 +58,6 @@ async def process_flower_choice(message: types.Message, state: FSMContext):
         f"Вы выбрали {message.text}. Сколько штук вы хотите заказать?\n(Введите число, например: 5)",
         reply_markup=kb.as_markup(resize_keyboard=True)
     )
-
 
 
 @router.message(OrderSteps.waiting_for_quantity)
@@ -165,9 +162,7 @@ async def process_phone(message: types.Message, state: FSMContext):
     # 1. Сначала проверяем текст, но только если он ЕСТЬ (чтобы не было ошибки с контактом)
     if message.text and message.text == "⬅️ Назад":
         await state.set_state(OrderSteps.waiting_for_name)
-        await message.answer("Введите ваше имя заново:",
-                             reply_markup=ReplyKeyboardBuilder().row(types.KeyboardButton(text="⬅️ Назад")).as_markup(
-                                 resize_keyboard=True))
+        await message.answer("Введите ваше имя заново:", reply_markup=ReplyKeyboardBuilder().row(types.KeyboardButton(text="⬅️ Назад")).as_markup(resize_keyboard=True))
         return
 
     if message.contact:
@@ -210,17 +205,14 @@ async def process_confirm(message: types.Message, state: FSMContext):
         try:
             await message.bot.send_message(chat_id=ADMIN_ID, text=admin_summary)
 
-            # Сначала создаем кнопку
             kb = ReplyKeyboardBuilder()
             kb.row(types.KeyboardButton(text='Сделать новый заказ'))
-
-            # Отправляем сообщение об успехе с этой кнопкой
+         
             await message.answer("Спасибо! Заказ передан менеджеру.",
                                  reply_markup=kb.as_markup(resize_keyboard=True))
 
-            # Очищаем состояние в самом конце
             await state.clear()
-            return  # Выходим из функции, чтобы код ниже не выполнялся
+            return 
 
         except Exception as e:
             print(f"Ошибка: {e}")
